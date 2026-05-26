@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -144,6 +145,20 @@ export function CourseGrid({ courses }: CourseGridProps) {
                     {course.level}
                   </Badge>
                 </div>
+                <div className="relative h-48 w-full overflow-hidden bg-muted">
+  {course.image_url ? (
+    <Image
+      src={course.image_url}
+      alt={course.title}
+      fill
+      className="object-cover transition-transform group-hover:scale-105"
+    />
+  ) : (
+    <div className="flex h-full items-center justify-center">
+      <GraduationCap className="h-12 w-12 text-muted-foreground" />
+    </div>
+  )}
+</div>
                 <h3 className="line-clamp-2 text-lg font-semibold text-foreground group-hover:text-primary">
                   {course.title}
                 </h3>
