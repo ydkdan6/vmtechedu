@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,17 +17,7 @@ import { Loader2, CheckCircle2, User, Upload, FileText, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { sendNotification } from "@/lib/notifications";
 
-const specializations = [
-  "Web Development",
-  "Python Programming",
-  "Data Science & AI",
-  "Microsoft Office",
-  "Digital Literacy",
-  "Graphic Design",
-  "Cybersecurity",
-  "Mobile Development",
-  "Other",
-];
+// ← removed hardcoded specializations array
 
 const experienceLevels = [
   "1-2 years",
@@ -36,7 +26,7 @@ const experienceLevels = [
   "10+ years",
 ];
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 export function TutorApplicationForm() {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,19 +37,35 @@ export function TutorApplicationForm() {
   const [selectedExp, setSelectedExp] = useState("");
   const [resumeUrl, setResumeUrl] = useState<string | null>(null);
   const [resumeName, setResumeName] = useState<string | null>(null);
+  const [specializations, setSpecializations] = useState<{ id: string; name: string }[]>([]);
+  const [specializationsLoading, setSpecializationsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("categories")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("name");
+
+      if (data) setSpecializations(data);
+      setSpecializationsLoading(false);
+    }
+
+    fetchCategories();
+  }, []);
 
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       setError("File size must not exceed 5MB");
       return;
     }
 
-    // Validate file type
     const validTypes = [
       "application/pdf",
       "application/msword",
@@ -131,7 +137,6 @@ export function TutorApplicationForm() {
 
       if (insertError) throw insertError;
 
-      // Send notification
       await sendNotification({
         type: "tutor_application",
         title: `New tutor application: ${data.full_name}`,
@@ -222,22 +227,33 @@ export function TutorApplicationForm() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Specialization *</Label>
-              <Select value={selectedSpec} onValueChange={setSelectedSpec} required>
+              <Select
+                value={selectedSpec}
+                onValueChange={setSelectedSpec}
+                disabled={specializationsLoading}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select area" />
+                  <SelectValue
+                    placeholder={specializationsLoading ? "Loading..." : "Select area"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {specializations.map((spec) => (
-                    <SelectItem key={spec} value={spec}>
-                      {spec}
+                    <SelectItem key={spec.id} value={spec.name}>
+                      {spec.name}
                     </SelectItem>
                   ))}
+                  {!specializationsLoading && specializations.length === 0 && (
+                    <SelectItem value="" disabled>
+                      No specializations available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label>Experience *</Label>
-              <Select value={selectedExp} onValueChange={setSelectedExp} required>
+              <Select value={selectedExp} onValueChange={setSelectedExp}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select experience" />
                 </SelectTrigger>
@@ -264,7 +280,6 @@ export function TutorApplicationForm() {
             />
           </div>
 
-          {/* Resume/CV Upload */}
           <div className="space-y-2">
             <Label>Resume/CV (PDF or Word, Max 5MB)</Label>
             <div className="flex flex-col gap-2">

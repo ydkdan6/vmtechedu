@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,22 +17,31 @@ import { Loader2, CheckCircle2, Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { sendNotification } from "@/lib/notifications";
 
-const areasOfInterest = [
-  "Computer Basics & Digital Literacy",
-  "Coding for Kids",
-  "Web Development",
-  "Microsoft Office Suite",
-  "Cybersecurity & Internet Safety",
-  "AI & Future Technologies",
-  "Multiple Programs",
-  "Custom Program",
-];
+// ← removed hardcoded areasOfInterest array
 
 export function SchoolBookingForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedArea, setSelectedArea] = useState("");
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("categories")
+        .select("id, name")
+        .eq("is_active", true)
+        .order("name");
+
+      if (data) setCategories(data);
+      setCategoriesLoading(false);
+    }
+
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,7 +70,6 @@ export function SchoolBookingForm() {
 
       if (insertError) throw insertError;
 
-      // Send notification
       await sendNotification({
         type: "school_request",
         title: `New school request: ${data.school_name}`,
@@ -91,9 +99,7 @@ export function SchoolBookingForm() {
       <Card className="border-green-200 bg-green-50">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
           <CheckCircle2 className="h-16 w-16 text-green-600" />
-          <h2 className="mt-4 text-2xl font-bold text-green-800">
-            Request Submitted!
-          </h2>
+          <h2 className="mt-4 text-2xl font-bold text-green-800">Request Submitted!</h2>
           <p className="mt-2 text-green-700">
             Thank you for your interest in partnering with VM Tech Edu. Our team
             will contact you within 24 hours to schedule your consultation.
@@ -164,16 +170,27 @@ export function SchoolBookingForm() {
             </div>
             <div className="space-y-2">
               <Label>Area of Interest *</Label>
-              <Select value={selectedArea} onValueChange={setSelectedArea} required>
+              <Select
+                value={selectedArea}
+                onValueChange={setSelectedArea}
+                disabled={categoriesLoading}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select program" />
+                  <SelectValue
+                    placeholder={categoriesLoading ? "Loading..." : "Select program"}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {areasOfInterest.map((area) => (
-                    <SelectItem key={area} value={area}>
-                      {area}
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      {category.name}
                     </SelectItem>
                   ))}
+                  {!categoriesLoading && categories.length === 0 && (
+                    <SelectItem value="" disabled>
+                      No programs available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             </div>
