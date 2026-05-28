@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import {
   Users,
   School,
   UserCheck,
-  GraduationCap,
   FolderOpen,
   Menu,
   X,
@@ -50,12 +50,14 @@ export function MobileSidebar({ user }: MobileSidebarProps) {
         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
         {/* Logo */}
         <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-6">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
-              <GraduationCap className="h-5 w-5 text-sidebar-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold">VM Tech Edu</span>
-          </div>
+          <Image
+                      src="/logo.png"
+                      alt="VMeduTech Logo"
+                      width={32}
+                      height={32}
+                      className="h-10 w-18"
+                      priority
+                    />
         </div>
 
         {/* Navigation */}

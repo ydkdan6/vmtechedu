@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Menu, X, GraduationCap } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Image from "next/image";
 
 export function Header() {
@@ -82,9 +82,9 @@ export function Header() {
               </Link>
             ))}
             <div className="mt-2 flex flex-col gap-2 border-t border-border pt-4">
-              <Button variant="outline" asChild className="w-full">
+              {/* <Button variant="outline" asChild className="w-full">
                 <Link href="/admin/login">Admin Login</Link>
-              </Button>
+              </Button> */}
               <Button asChild className="w-full">
                 <Link href="/courses">Get Started</Link>
               </Button>

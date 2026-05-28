@@ -10,7 +10,6 @@ import {
   Users,
   School,
   UserCheck,
-  GraduationCap,
   FolderOpen,
   Settings,
 } from "lucide-react";
