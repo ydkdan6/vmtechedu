@@ -2,6 +2,7 @@
 
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
+import { getMaxListeners } from "events";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -36,13 +37,27 @@ export async function sendNotification(data: NotificationData) {
 
   const settingsMap = settings?.reduce(
     (acc, s) => ({ ...acc, [s.key]: s.value }),
-    {} as Record<string, string>
+    {} as Record<string, string>,
   );
 
-  const emailEnabled = settingsMap?.email_notifications_enabled === "true";
-  const adminEmail = settingsMap?.notification_email;
+  const xxx = "info@vmconsulting.com.ng"; 
+  const emailEnabled = settingsMap?.email_notifications_enabled !== "false"; // opt-out model
 
-  if (!emailEnabled || !adminEmail || !process.env.RESEND_API_KEY) {
+  console.log("🔍 Email debug:", {
+    settings,
+    settingsMap,
+    emailEnabled: settingsMap?.email_notifications_enabled,
+    emailEnabledCheck: settingsMap?.email_notifications_enabled === "true",
+    hasResendKey: !!process.env.RESEND_API_KEY,
+    resendKeyPreview: process.env.RESEND_API_KEY?.slice(0, 8),
+  });
+
+  if (!xxx || !process.env.RESEND_API_KEY) {
+    console.log("🚫 Skipping email — guard hit:", {
+      emailEnabled,
+      xxx: !!xxx,
+      hasKey: !!process.env.RESEND_API_KEY,
+    });
     return { success: true, emailSent: false };
   }
 
@@ -65,8 +80,8 @@ export async function sendNotification(data: NotificationData) {
 
   try {
     await resend.emails.send({
-      from: "VM Tech Edu <notifications@resend.dev>",
-      to: adminEmail,
+      from: "VM Tech Edu <notifications@vmconsulting.com.ng>",
+      to: xxx,
       subject: `[VM Tech Edu] ${typeLabels[data.type]}`,
       html: `
         <!DOCTYPE html>
